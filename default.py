@@ -33,6 +33,7 @@ __language__ = __settings__.getLocalizedString
 
 re_vimeo = 'vimeo.com/(|video/)(\d+)"'
 re_youtube = 'http://www.youtube.com/(watch\?.*v=(.*?)["&]|v/(.*?)["\?])'
+re_thumb = '(http://.*?jpg)'
 
 
 
@@ -45,21 +46,31 @@ def getFeed(url):
  
 
 def listFeed(feedUrl):
-   
-  feedTree = getFeed(feedUrl)
-  
-  items = feedTree.findAll('item')
-  nItems = len(items)
-  if (nItems == 0):
-    __settings__.openSettings()
-  else:
-    for n in range(nItems):
-        itemTitle = items[n]('title')[0].contents[0]
-        itemUrl = items[n]('media:content')[0]
-        itemUrl = pluginUrl(str(itemUrl))
-        if not (itemUrl == "&"):
-            addPosts(itemTitle, itemUrl)
+    feedTree = getFeed(feedUrl)
+    items = feedTree.findAll('item')
+    nItems = len(items)
+    if (nItems == 0):
+        __settings__.openSettings()
+    else:
+        for n in range(nItems):
+            itemTitle = items[n]('title')[0].contents[0]
+            itemUrl = items[n]('media:content')[0]
+            itemUrl = pluginUrl(str(itemUrl))
+            itemDescription = items[n]('description')[0].contents[0]
+            itemDescription = str(itemDescription)
+            itemThumb = items[n]('media:thumbnail')[0]
+            itemThumb = thumbUrl(str(itemThumb))
+            print itemThumb
+            if not (itemUrl == "&"):
+                addPosts(itemTitle, itemUrl, itemDescription, itemThumb)
+    return
 
+def thumbUrl(data):
+    url = re.findall(re_thumb, data, re.IGNORECASE)
+    if not url:
+        url = ['']
+    return url[0]
+            
 def pluginUrl(url):
  vimeoId = re.findall(re_vimeo, url, re.IGNORECASE)
  youtubeId = re.findall(re_youtube, url)
@@ -80,9 +91,9 @@ def pluginUrl(url):
  out = videoType + "&" + videoId
  return out
   
-def addPosts(title, url):
- listitem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png")
- listitem.setInfo( type="Video", infoLabels={ "Title": title } )
+def addPosts(title, url, description='', thumb=''):
+ listitem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png", thumbnailImage=thumb)
+ listitem.setInfo( type="Video", infoLabels={ "Title": title, "Plot" : description } )
  xurl = "%s?play=ok&" % sys.argv[0]
  xurl = xurl + url
  listitem.setPath(xurl)
