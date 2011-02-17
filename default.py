@@ -34,8 +34,6 @@ __language__ = __settings__.getLocalizedString
 re_vimeo = 'vimeo.com/(|video/)(\d+)"'
 re_youtube = 'http://www.youtube.com/(watch\?.*v=(.*?)["&]|v/(.*?)["\?])'
 
-#http://player.vimeo.com/video/19474258
-#http://www.youtube.com/v/SYweCrksFWI?version=3
 
 
 
@@ -58,7 +56,6 @@ def listFeed(feedUrl):
     for n in range(nItems):
         itemTitle = items[n]('title')[0].contents[0]
         itemUrl = items[n]('media:content')[0]
-        print itemUrl
         itemUrl = pluginUrl(str(itemUrl))
         if not (itemUrl == "&"):
             addPosts(itemTitle, itemUrl)
