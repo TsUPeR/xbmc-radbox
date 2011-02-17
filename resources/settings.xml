@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+
+  <!-- General -->
+  <setting id="feedUrl" type="text" label="30001" default="http://link.to.your.radbox.rss.feed.xml" />
+  <setting id="youTubeType" type="enum" label="30002" values="youtube|youtube.beta" default="youtube"/>
+  <setting id="vimeoType" type="enum" label="30003" values="vimeo|vimeo.beta" default="vimeo"/>
+
+</settings>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+    <!-- Plugin settings strings -->
+    <string id="30001">URL to Radbox rss feed: </string>
+    <string id="30002">YouTube plugin: </string>
+    <string id="30003">Vimeo plugin: </string>
+</strings>

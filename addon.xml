@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.watchmelater"
+       name="Radbox"
+       version="0.0.1"
+       provider-name="Popeye">
+  <requires>
+    <import addon="xbmc.python" version="1.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="default.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary>Radbox</summary>
+    <description>Plugin that allows you to browse videos you have added to your Radbox.me account. Currently only youtube and vimeo videos will be listed.</description>
+    <disclaimer>This addon requires the youtube and vimeo plugin to work as intended.</disclaimer>
+  </extension>
+</addon>
