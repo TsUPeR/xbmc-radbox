@@ -1,5 +1,5 @@
 """
- Copyright (c) 2010 Johan Wieslander, <johan.wieslander@gmail.com>
+ Copyright (c) 2010 Johan Wieslander, <johan[d0t]wieslander<(a)>gmail[d0t]com>
 
  Permission is hereby granted, free of charge, to any person
  obtaining a copy of this software and associated documentation
@@ -23,73 +23,62 @@
  OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from BeautifulSoup import BeautifulStoneSoup
-import xbmcutils.net, re
-import sys, xbmc, xbmcaddon, xbmcgui, xbmcplugin
+import sys
+import re
+import xbmc
+import xbmcaddon
+import xbmcgui
+import xbmcplugin
+import urllib2
+from xml.dom.minidom import parse, parseString
 
 # plugin constants
 __settings__ = xbmcaddon.Addon(id='plugin.video.radbox')
 __language__ = __settings__.getLocalizedString
 
-re_vimeo = 'vimeo.com/(|video/)(\d+)"'
-re_youtube = 'http://www.youtube.com/(watch\?.*v=(.*?)["&]|v/(.*?)["\?])'
-re_thumb = '(http://.*?jpg)'
+RE_VIMEO = 'vimeo.com/(|video/)(\d+)'
+RE_YOUTUBE = 'http://www.youtube.com/(watch\?.*v=(.*?)["&]|v/(.*?)["\?])'
 
+NS_MEDIA = "http://search.yahoo.com/mrss/"
 
-
-
-#Get the rss stream
-def getFeed(url):
-  reqHeader = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.10) Gecko/2009042316 Firefox/3.0.10'}
-  data = xbmcutils.net.retrieve(url, None, reqHeader)
-  return BeautifulStoneSoup(data, convertEntities=BeautifulStoneSoup.XML_ENTITIES)
- 
 
 def listFeed(feedUrl):
-    feedTree = getFeed(feedUrl)
-    items = feedTree.findAll('item')
-    nItems = len(items)
-    if (nItems == 0):
-        __settings__.openSettings()
-    else:
-        for n in range(nItems):
-            itemTitle = items[n]('title')[0].contents[0]
-            itemUrl = items[n]('media:content')[0]
-            itemUrl = pluginUrl(str(itemUrl))
-            itemDescription = items[n]('description')[0].contents[0]
-            itemDescription = str(itemDescription)
-            itemThumb = items[n]('media:thumbnail')[0]
-            itemThumb = thumbUrl(str(itemThumb))
-            print itemThumb
-            if not (itemUrl == "&"):
-                addPosts(itemTitle, itemUrl, itemDescription, itemThumb)
-    return
+    doc = load_xml(feedUrl)
+    for item in doc.getElementsByTagName("item"):
+        title = get_node_value(item, "title")
+        description = get_node_value(item, "description")
+        url = None
+        url_nodes = item.getElementsByTagNameNS(NS_MEDIA, "content")
+        if url_nodes:
+            url = url_nodes[0].getAttribute("url")
+            url = pluginUrl(url)
+        thumb = None
+        thumbnail_nodes = item.getElementsByTagNameNS(NS_MEDIA, "thumbnail")
+        if thumbnail_nodes:
+            thumb = thumbnail_nodes[0].getAttribute("url")
 
-def thumbUrl(data):
-    url = re.findall(re_thumb, data, re.IGNORECASE)
-    if not url:
-        url = ['']
-    return url[0]
+        addPosts(title, url, description, thumb)
+    return
             
 def pluginUrl(url):
- vimeoId = re.findall(re_vimeo, url, re.IGNORECASE)
- youtubeId = re.findall(re_youtube, url)
- out = ""
- videoType = ""
- videoId = ""
- if vimeoId:
-    videoType = "videotype=vimeo"
-    (first, second) = vimeoId[0]
-    videoId = "videoid=%s" % str(second)
- elif youtubeId:
-    videoType = "videotype=youtube"
-    (first, second, third) = youtubeId[0]
-    if second:
-        videoId = "videoid=%s" % str(second)
-    else:
-        videoId = "videoid=%s" % str(third)
- out = videoType + "&" + videoId
- return out
+    vimeoId = re.findall(RE_VIMEO, url, re.IGNORECASE)
+    youtubeId = re.findall(RE_YOUTUBE, url)
+    out = ""
+    videoType = ""
+    videoId = ""
+    if vimeoId:
+       videoType = "videotype=vimeo"
+       (first, second) = vimeoId[0]
+       videoId = "videoid=%s" % str(second)
+    elif youtubeId:
+       videoType = "videotype=youtube"
+       (first, second, third) = youtubeId[0]
+       if second:
+           videoId = "videoid=%s" % str(second)
+       else:
+           videoId = "videoid=%s" % str(third)
+    out = videoType + "&" + videoId
+    return out
   
 def addPosts(title, url, description='', thumb=''):
  listitem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png", thumbnailImage=thumb)
@@ -132,8 +121,25 @@ def playVideo(params):
         else:
             vt = "vimeo.beta"
         url = ("plugin://plugin.video." + vt + "/?action=play_video&videoid=%s") % videoId
-    
+
     xbmc.executebuiltin("xbmc.PlayMedia("+url+")")
+
+def get_node_value(parent, name, ns=""):
+    if ns:
+        return parent.getElementsByTagNameNS(ns, name)[0].childNodes[0].data
+    else:
+        return parent.getElementsByTagName(name)[0].childNodes[0].data
+
+def load_xml(url):
+    try:
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req)
+        xml = response.read()
+        response.close()
+
+        return parseString(xml)
+    except:
+        xbmc.log("unable to load url: " + url)
 
 if (__name__ == "__main__" ):
     if ( not __settings__.getSetting( "firstrun" ) ):
