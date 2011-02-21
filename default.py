@@ -134,12 +134,13 @@ def load_xml(url):
     try:
         req = urllib2.Request(url)
         response = urllib2.urlopen(req)
-        xml = response.read()
-        response.close()
-
-        return parseString(xml)
     except:
         xbmc.log("unable to load url: " + url)
+
+    xml = response.read()
+    response.close()
+    xml = xml.replace("& ", "&amp; ")
+    return parseString(xml)
 
 if (__name__ == "__main__" ):
     if ( not __settings__.getSetting( "firstrun" ) ):
