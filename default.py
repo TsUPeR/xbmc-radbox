@@ -126,9 +126,18 @@ def playVideo(params):
 
 def get_node_value(parent, name, ns=""):
     if ns:
-        return parent.getElementsByTagNameNS(ns, name)[0].childNodes[0].data
+        node_value = parent.getElementsByTagName(ns, name)[0]
+        if node_value.childNodes:
+            node_value = node_value.childNodes[0].data
+        else:
+            node_value = ""
     else:
-        return parent.getElementsByTagName(name)[0].childNodes[0].data
+        node_value = parent.getElementsByTagName(name)[0]
+        if node_value.childNodes:
+            node_value = node_value.childNodes[0].data
+        else:
+            node_value = ""
+    return node_value
 
 def load_xml(url):
     try:
