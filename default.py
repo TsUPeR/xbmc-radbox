@@ -56,12 +56,15 @@ def pluginUrl(url):
     return out
   
 def addPosts(title, url, description='', thumb=''):
- listitem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png", thumbnailImage=thumb)
- listitem.setInfo( type="Video", infoLabels={ "Title": title, "Plot" : description } )
- xurl = "%s?play=ok&" % sys.argv[0]
- xurl = xurl + url
- listitem.setPath(xurl)
- xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=xurl, listitem=listitem)
+    try:
+        listitem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png", thumbnailImage=thumb)
+        listitem.setInfo( type="Video", infoLabels={ "Title": title, "Plot" : description } )
+        xurl = "%s?play=ok&" % sys.argv[0]
+        xurl = xurl + url
+        listitem.setPath(xurl)
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=xurl, listitem=listitem)
+    except:
+        xbmc.log("There was a problem adding a video, skipping it")
  
 # FROM plugin.video.youtube.beta  -- converts the request url passed on by xbmc to our plugin into a dict  
 def getParameters(parameterString):
@@ -101,9 +104,18 @@ def playVideo(params):
 
 def get_node_value(parent, name, ns=""):
     if ns:
-        return parent.getElementsByTagNameNS(ns, name)[0].childNodes[0].data
+        node_value = parent.getElementsByTagName(ns, name)[0]
+        if node_value.childNodes:
+            node_value = node_value.childNodes[0].data
+        else:
+            node_value = ""
     else:
-        return parent.getElementsByTagName(name)[0].childNodes[0].data
+        node_value = parent.getElementsByTagName(name)[0]
+        if node_value.childNodes:
+            node_value = node_value.childNodes[0].data
+        else:
+            node_value = ""
+    return node_value
 
 def load_xml(url):
     try:
